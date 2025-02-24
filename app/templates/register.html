@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>用户注册 - 兰花数据库</title>
     <style>
@@ -12,20 +13,24 @@
             margin: 0;
             background-color: #f0f2f5;
         }
+
         .container {
             background: white;
             padding: 2rem;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             width: 300px;
         }
+
         h2 {
             text-align: center;
             color: #1a73e8;
         }
+
         .form-group {
             margin-bottom: 1rem;
         }
+
         input {
             width: 100%;
             padding: 8px;
@@ -33,6 +38,7 @@
             border: 1px solid #ddd;
             border-radius: 4px;
         }
+
         button {
             width: 100%;
             padding: 10px;
@@ -42,11 +48,13 @@
             border-radius: 4px;
             cursor: pointer;
         }
+
         .error {
             color: red;
             margin: 1rem 0;
             display: none;
         }
+
         a {
             display: block;
             text-align: center;
@@ -56,6 +64,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h2>用户注册</h2>
@@ -72,6 +81,10 @@
                 <label>确认密码:</label>
                 <input type="password" id="confirmPassword" required>
             </div>
+            <div class="form-group">
+                <label>管理员密钥（仅限授权人员）:</label>
+                <input type="password" id="adminSecret">
+            </div>
             <button type="submit">注册</button>
         </form>
         <div id="errorMessage" class="error"></div>
@@ -83,6 +96,7 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
+            const adminSecret = document.getElementById('adminSecret').value; // 获取密钥
             const errorDiv = document.getElementById('errorMessage');
 
             // 密码一致性校验
@@ -96,7 +110,7 @@
                 const response = await fetch('/api/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password})
+                    body: JSON.stringify({ username, password, admin_secret: adminSecret })
                 });
                 const data = await response.json();
 
@@ -113,4 +127,5 @@
         });
     </script>
 </body>
+
 </html>

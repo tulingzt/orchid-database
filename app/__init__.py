@@ -9,7 +9,7 @@ jwt = JWTManager()
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object('config.Config')
+    app.config.from_object('config.app')
     # 注册蓝图
     from app.routes.database import orchid_species
     app.register_blueprint(orchid_species, url_prefix='/api/orchid-species')

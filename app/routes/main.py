@@ -12,6 +12,10 @@ def login_html():
 def dashboard_html():
     return render_template('dashboard.html')
 
+@html.route("/register.html")
+def register_html():
+    return render_template('register.html')
+
 @html.route("/")
 def index():
     return render_template('register.html')

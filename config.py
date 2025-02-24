@@ -9,7 +9,7 @@ PASSWORD = '123456'
 DATABASE='test'
 
 # 真正被调用的配置
-class Config:
+class app:
     # 数据库配置
     SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{USERNAME}:{PASSWORD}@{HOSTNAME}:{PORT}/{DATABASE}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -17,3 +17,7 @@ class Config:
     SECRET_KEY = 'secret key'
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
     JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
+
+class auth:
+    # 管理员密钥
+    ADMIN_SECRET = 'admin'
