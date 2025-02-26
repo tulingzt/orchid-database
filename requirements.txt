@@ -1,2 +1,4 @@
 bcrypt-4.2.1
 flask_jwt_extended-4.7.1
+python-3.13.1
+marshmallow-3.26.1

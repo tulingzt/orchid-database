@@ -1,4 +1,5 @@
 from app import db
+from marshmallow import Schema, fields, validate
 
 # 用户信息模型定义
 class User(db.Model):
@@ -51,6 +52,13 @@ class User(db.Model):
         self.password_hash = password_hash
         self.role = role
         self.last_login_time = db.text('CURRENT_TIMESTAMP')
+    # 提供转字典方法
+    def to_dict(self):
+        return {
+            "user_id": self.user_id,
+            "username": self.username,
+            "role": self.role
+        }
     # 更新登录时间
     def update_login_time(self):
         self.last_login_time = db.text('CURRENT_TIMESTAMP')
@@ -59,3 +67,10 @@ class User(db.Model):
     # 对象的标准字符串表示
     def __repr__(self):
         return f'<User {self.username}>'
+
+# 用户数据Schema校验
+class UserSchema(Schema):
+    username = fields.Str(required = False, allow_none = True)
+    role = fields.Str(required = False, allow_none = True, validate = validate.OneOf(['admin', 'user']))
+    page = fields.Int(required = False, missing = 1, validate = validate.Range(min = 1))
+    limit = fields.Int(required = False, missing = 10, validate = validate.Range(min = 1, max = 100))

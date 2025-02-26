@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity, get_jwt
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt
 import bcrypt
-from app.models.user import User
+from app.models.user import User, UserSchema
 from app import db
 import config
 
@@ -16,7 +16,7 @@ def register():
     password = data.get('password')
     admin_secret = data.get('admin_secret')
     # 校验唯一性
-    if User.query.filter_by(username=username).first():
+    if User.query.filter_by(username = username).first():
         return jsonify({"code": 400, "message": "用户名已存在"}), 400
     # 哈希密码
     salt = bcrypt.gensalt()
@@ -44,21 +44,57 @@ def login():
     user.update_login_time()
     # 生成JWT令牌
     access_token = create_access_token(identity = user.username, additional_claims = {"id": user.user_id, "name": user.username, "role": user.role})
-    refresh_token = create_access_token(identity = user.username, additional_claims = {"id": user.user_id, "name": user.username, "role": user.role})
+    refresh_token = create_refresh_token(identity = user.username, additional_claims = {"id": user.user_id, "name": user.username, "role": user.role})
     return jsonify(access_token = access_token, refresh_token = refresh_token)
 
+# 查询用户 支持模糊查询
 @auth.route('/users', methods=['GET'])
 @jwt_required()
-def get_users():
+def get_schema_users():
     current_user = get_jwt()
     if current_user['role'] != 'admin':
         return jsonify({"code": 403, "message": "权限不足"}), 403
-    users = User.query.all()
-    return jsonify([{
-        "user_id": u.user_id,
-        "username": u.username,
-        "role": u.role
-    } for u in users])
+    # 校验查询参数
+    schema = UserSchema()
+    errors = schema.validate(request.args)
+    if errors:
+        return jsonify({"code": 422, "detail": errors}), 422
+    # 构建模糊查询条件
+    query = User.query
+    if 'username' in request.args and request.args['username']:
+        username = request.args.get('username')
+        query = query.filter(User.username.like(f"%{username}%"))  # 模糊匹配用户名
+    if 'role' in request.args and request.args['role']:
+        role = request.args.get('role')
+        query = query.filter_by(role = role)  # 权限仍为精确匹配
+    # 分页查询
+    page = request.args.get('page', 1, type = int)
+    limit = request.args.get('limit', 10, type = int)
+    pagination = query.paginate(page = page, per_page = limit, error_out = False)
+    return jsonify({
+        "code": 200,
+        "data": [user.to_dict() for user in pagination.items],
+        "pagination": {
+            "total": pagination.total,
+            "page": pagination.page,
+            "pages": pagination.pages,
+            "per_page": pagination.per_page
+        }
+    })
+
+# 删除用户
+@auth.route('/users/<int:user_id>', methods=['DELETE'])
+@jwt_required()
+def delete_user(user_id):
+    current_user = get_jwt()
+    if current_user['role'] != 'admin':
+        return jsonify({"code": 403, "message": "权限不足"}), 403
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"code": 404, "message": "用户不存在"}), 404
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({"code": 204, "message": "用户删除成功"})
 
 # 管理员修改用户权限
 @auth.route('/role/<int:user_id>', methods=['PUT'])
