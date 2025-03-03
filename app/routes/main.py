@@ -20,6 +20,10 @@ def register_html():
 def users_html():
     return render_template('users.html')
 
+@html.route("/test.html")
+def test_html():
+    return render_template('test.html')
+
 @html.route("/")
 def index():
     return render_template('register.html')

@@ -11,16 +11,16 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object('config.app')
     # 注册蓝图
-    from app.routes.database import orchid_species
-    app.register_blueprint(orchid_species, url_prefix='/api/orchid-species')
-    from app.routes.database import flower_morphology
-    app.register_blueprint(flower_morphology, url_prefix='/api/flower-morphology')
-    from app.routes.database import petal_morphology
-    app.register_blueprint(petal_morphology, url_prefix='/api/petal-morphology')
-    from app.routes.database import sepal_morphology
-    app.register_blueprint(sepal_morphology, url_prefix='/api/sepal-morphology')
     from app.routes.auth import auth
     app.register_blueprint(auth, url_prefix='/api/auth')
+    from app.routes.species import species
+    app.register_blueprint(species, url_prefix='/api/data')
+    from app.routes.flower import flower
+    app.register_blueprint(flower, url_prefix='/api/data')
+    from app.routes.petal import petal
+    app.register_blueprint(petal, url_prefix='/api/data')
+    from app.routes.sepal import sepal
+    app.register_blueprint(sepal, url_prefix='/api/data')
     
     from app.routes.main import html
     app.register_blueprint(html)

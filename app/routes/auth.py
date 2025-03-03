@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt
 import bcrypt
-from app.models.user import User, UserSchema
+from app.models.user import User, UserQuerySchema
 from app import db
 import config
 
@@ -55,7 +55,7 @@ def get_schema_users():
     if current_user['role'] != 'admin':
         return jsonify({"code": 403, "message": "权限不足"}), 403
     # 校验查询参数
-    schema = UserSchema()
+    schema = UserQuerySchema()
     errors = schema.validate(request.args)
     if errors:
         return jsonify({"code": 422, "detail": errors}), 422

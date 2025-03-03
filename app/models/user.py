@@ -64,12 +64,9 @@ class User(db.Model):
         self.last_login_time = db.text('CURRENT_TIMESTAMP')
         db.session.add(self)
         db.session.commit()
-    # 对象的标准字符串表示
-    def __repr__(self):
-        return f'<User {self.username}>'
 
 # 用户数据Schema校验
-class UserSchema(Schema):
+class UserQuerySchema(Schema):
     username = fields.Str(required = False, allow_none = True)
     role = fields.Str(required = False, allow_none = True, validate = validate.OneOf(['admin', 'user']))
     page = fields.Int(required = False, missing = 1, validate = validate.Range(min = 1))

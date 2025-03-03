@@ -1,7 +1,8 @@
 from app import db
+from marshmallow import Schema, fields, validate
 
 # 花瓣形态模型定义
-class PetalMorphology(db.Model):
+class Petal(db.Model):
     # 表名定义
     __tablename__ = 'petal_morphology'
     # 表项定义
@@ -37,6 +38,16 @@ class PetalMorphology(db.Model):
         db.DECIMAL(8, 2),
         comment = '花瓣面积（cm²）'
     )
+    # 提供转字典方法
+    def to_dict(self):
+        return {
+            "petal_id": self.petal_id,
+            "flower_id": self.flower_id,
+            "petal_length": self.petal_length,
+            "petal_width": self.petal_width,
+            "petal_ratio": self.petal_ratio,
+            "petal_area": self.petal_area
+        }
     # 表属性定义
     __table_args__ = {
         'mysql_engine': 'InnoDB',
@@ -44,12 +55,10 @@ class PetalMorphology(db.Model):
         'mysql_collate': 'utf8mb4_unicode_ci',
         'comment': '花瓣形态参数表'
     }
-    # 对象的初始化
-    def __init__(self, flower_id, petal_length, petal_width, petal_area):
-        self.flower_id = flower_id
-        self.petal_length = petal_length
-        self.petal_width = petal_width
-        self.petal_area = petal_area
-    # 对象的标准字符串表示
-    def __repr__(self):
-        return f'<PetalMorphology {self.petal_id}>'
+
+# 花瓣形态数据校验
+class PetalSchema(Schema):
+    flower_id = fields.Int(required=True)
+    petal_length = fields.Decimal(required=True, validate=validate.Range(min=0.1))
+    petal_width = fields.Decimal(required=True, validate=validate.Range(min=0.1))
+    petal_area = fields.Decimal(validate=validate.Range(min=0.1))

@@ -1,7 +1,8 @@
 from app import db
+from marshmallow import Schema, fields, validate
 
 # 萼片形态模型定义
-class SepalMorphology(db.Model):
+class Sepal(db.Model):
     # 表名定义
     __tablename__ = 'sepal_morphology'
     # 表项定义
@@ -37,6 +38,16 @@ class SepalMorphology(db.Model):
         db.DECIMAL(8, 2),
         comment = '萼片面积（cm²）'
     )
+    # 提供转字典方法
+    def to_dict(self):
+        return {
+            "sepal_id": self.sepal_id,
+            "flower_id": self.flower_id,
+            "sepal_length": self.sepal_length,
+            "sepal_width": self.sepal_width,
+            "sepal_ratio": self.sepal_ratio,
+            "sepal_area": self.sepal_area
+        }
     # 表属性定义
     __table_args__ = {
         'mysql_engine': 'InnoDB',
@@ -44,12 +55,11 @@ class SepalMorphology(db.Model):
         'mysql_collate': 'utf8mb4_unicode_ci',
         'comment': '萼片形态参数表'
     }
-    # 对象的初始化
-    def __init__(self, flower_id, sepal_length, sepal_width, sepal_area):
-        self.flower_id = flower_id
-        self.sepal_length = sepal_length
-        self.sepal_width = sepal_width
-        self.sepal_area = sepal_area
-    # 对象的标准字符串表示
-    def __repr__(self):
-        return f'<SepalMorphology {self.sepal_id}>'
+
+# 萼片形态数据校验
+# 花瓣形态数据校验
+class SepalSchema(Schema):
+    flower_id = fields.Int(required=True)
+    sepal_length = fields.Decimal(required=True, validate=validate.Range(min=0.1))
+    sepal_width = fields.Decimal(required=True, validate=validate.Range(min=0.1))
+    sepal_area = fields.Decimal(validate=validate.Range(min=0.1))

@@ -1,7 +1,8 @@
 from app import db
+from marshmallow import Schema, fields, validate
 
 # 兰花种类模型定义
-class OrchidSpecies(db.Model):
+class Species(db.Model):
     # 表名定义
     __tablename__ = 'orchid_species'
     # 表项定义
@@ -43,6 +44,17 @@ class OrchidSpecies(db.Model):
         default = '无危',
         comment = '保护级别'
     )
+    # 提供转字典方法
+    def to_dict(self):
+        return {
+            "species_id": self.species_id,
+            "family": self.family,
+            "genus": self.genus,
+            "scientific_name": self.scientific_name,
+            "chinese_name": self.chinese_name,
+            "distribution": self.distribution,
+            "conservation_status": self.conservation_status
+        }
     # 表属性定义
     __table_args__ = {
         'mysql_engine': 'InnoDB',
@@ -50,14 +62,12 @@ class OrchidSpecies(db.Model):
         'mysql_collate': 'utf8mb4_unicode_ci',
         'comment': '兰花种类信息表'
     }
-    # 对象的初始化
-    def __init__(self, family, genus, scientific_name, chinese_name, distribution, conservation_status):
-        self.family = family
-        self.genus = genus
-        self.scientific_name = scientific_name
-        self.chinese_name = chinese_name
-        self.distribution = distribution
-        self.conservation_status = conservation_status
-    # 对象的标准字符串表示
-    def __repr__(self):
-        return f'<OrchidSpecies {self.chinese_name}>'
+
+# 兰花种类数据校验
+class SpeciesSchema(Schema):
+    family = fields.Str(required=True)
+    genus = fields.Str(required=True)
+    scientific_name = fields.Str(required=True)
+    chinese_name = fields.Str(required=True)
+    distribution = fields.Str()
+    conservation_status = fields.Str(validate=validate.OneOf(['无危', '易危', '濒危']))
