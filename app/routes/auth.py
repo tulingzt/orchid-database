@@ -11,10 +11,8 @@ auth = Blueprint('auth', __name__)
 # 用户注册
 @auth.route('/register', methods=['POST'])
 def register():
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
-    admin_secret = data.get('admin_secret')
+    username = request.json.get('username')
+    password = request.json.get('password')
     # 校验唯一性
     if User.query.filter_by(username = username).first():
         return jsonify({"code": 400, "message": "用户名已存在"}), 400
@@ -23,7 +21,7 @@ def register():
     password_hash = bcrypt.hashpw(password.encode('utf-8'), salt)
     # 判断是否为管理员注册
     role = 'user'
-    if admin_secret and admin_secret == config.auth.ADMIN_SECRET:
+    if request.json.get('admin_secret') == config.auth.ADMIN_SECRET:
         role = 'admin'
     # 保存用户
     new_user = User(username, password_hash = password_hash.decode('utf-8'), role = role)
@@ -34,43 +32,74 @@ def register():
 # 用户登录
 @auth.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
+    username = request.json.get('username')
+    password = request.json.get('password')
     # 查找是否有对应用户
     user = User.query.filter_by(username = username).first()
     if not user or not bcrypt.checkpw(password.encode('utf-8'), user.password_hash.encode('utf-8')):
         return jsonify({"code": 401, "message": "用户名或密码错误"}), 401
     user.update_login_time()
     # 生成JWT令牌
-    access_token = create_access_token(identity = user.username, additional_claims = {"id": user.user_id, "name": user.username, "role": user.role})
-    refresh_token = create_refresh_token(identity = user.username, additional_claims = {"id": user.user_id, "name": user.username, "role": user.role})
-    return jsonify(access_token = access_token, refresh_token = refresh_token)
+    access_token = create_access_token(
+        identity=user.username,
+        additional_claims = {
+            "id": user.user_id,
+            "name": user.username,
+            "role": user.role
+        }
+    )
+    refresh_token = create_refresh_token(
+        identity=user.username,
+        additional_claims = {
+            "id": user.user_id,
+            "name": user.username,
+            "role": user.role
+        }
+    )
+    return jsonify(access_token=access_token, refresh_token=refresh_token)
+
+# 管理员修改用户权限
+@auth.route('/role/<int:user_id>', methods=['PUT'])
+@jwt_required()
+def update_user_role(user_id):
+    if get_jwt()['role'] != 'admin':
+        return jsonify({"code": 403, "message": "权限不足"}), 403
+    new_role = request.json.get('role')
+    user = User.query.get_or_404(user_id)
+    user.role = new_role
+    db.session.commit()
+    return jsonify({"code": 200, "message": "用户权限更新成功"})
+
+# 删除用户
+@auth.route('/users/<int:user_id>', methods=['DELETE'])
+@jwt_required()
+def delete_user(user_id):
+    if get_jwt()['role'] != 'admin':
+        return jsonify({"code": 403, "message": "权限不足"}), 403
+    user = User.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({"code": 204, "message": "用户删除成功"})
 
 # 查询用户 支持模糊查询
 @auth.route('/users', methods=['GET'])
 @jwt_required()
-def get_schema_users():
-    current_user = get_jwt()
-    if current_user['role'] != 'admin':
+def get_user():
+    if get_jwt()['role'] != 'admin':
         return jsonify({"code": 403, "message": "权限不足"}), 403
     # 校验查询参数
-    schema = UserQuerySchema()
-    errors = schema.validate(request.args)
-    if errors:
-        return jsonify({"code": 422, "detail": errors}), 422
-    # 构建模糊查询条件
+    UserQuerySchema().load(request.args)
     query = User.query
-    if 'username' in request.args and request.args['username']:
-        username = request.args.get('username')
-        query = query.filter(User.username.like(f"%{username}%"))  # 模糊匹配用户名
-    if 'role' in request.args and request.args['role']:
-        role = request.args.get('role')
-        query = query.filter_by(role = role)  # 权限仍为精确匹配
+    # 模糊匹配用户名
+    if username := request.args.get('username'):
+        query = query.filter(User.username.like(f"%{username}%"))
+    # 权限仍为精确匹配
+    if role := request.args.get('role'):
+        query = query.filter_by(role=role)
     # 分页查询
-    page = request.args.get('page', 1, type = int)
-    limit = request.args.get('limit', 10, type = int)
-    pagination = query.paginate(page = page, per_page = limit, error_out = False)
+    page = request.args.get('page', 1, type=int)
+    limit = request.args.get('limit', 10, type=int)
+    pagination = query.paginate(page=page, per_page=limit, error_out=False)
     return jsonify({
         "code": 200,
         "data": [user.to_dict() for user in pagination.items],
@@ -82,42 +111,17 @@ def get_schema_users():
         }
     })
 
-# 删除用户
-@auth.route('/users/<int:user_id>', methods=['DELETE'])
-@jwt_required()
-def delete_user(user_id):
-    current_user = get_jwt()
-    if current_user['role'] != 'admin':
-        return jsonify({"code": 403, "message": "权限不足"}), 403
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"code": 404, "message": "用户不存在"}), 404
-    db.session.delete(user)
-    db.session.commit()
-    return jsonify({"code": 204, "message": "用户删除成功"})
-
-# 管理员修改用户权限
-@auth.route('/role/<int:user_id>', methods=['PUT'])
-@jwt_required()
-def update_user_role(user_id):
-    # 获取权限
-    current_user = get_jwt()
-    if current_user['role'] != 'admin':
-        return jsonify({"code": 403, "message": "权限不足"}), 403
-    new_role = request.json.get('role')
-    # 寻找修改对象
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"code": 404, "message": "用户不存在"}), 404
-    # 更新
-    user.role = new_role
-    db.session.commit()
-    return jsonify({"code": 200, "message": "角色更新成功"})
-
 # 使用刷新JWT来获取普通JWT
 @auth.route("/refresh", methods=["POST"])
 @jwt_required(refresh = True)
 def refresh():
     current_user = get_jwt()
-    access_token = create_access_token(identity = current_user['name'], additional_claims = {"id": current_user['id'], "name": current_user['name'], "role": current_user['role']})
-    return jsonify(access_token = access_token)
+    access_token = create_access_token(
+        identity=current_user['name'],
+        additional_claims = {
+            "id": current_user['id'],
+            "name": current_user['name'],
+            "role": current_user['role']
+        }
+    )
+    return jsonify(access_token=access_token)

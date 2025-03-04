@@ -57,7 +57,6 @@ class Sepal(db.Model):
     }
 
 # 萼片形态数据校验
-# 花瓣形态数据校验
 class SepalSchema(Schema):
     flower_id = fields.Int(required=True)
     sepal_length = fields.Decimal(required=True, validate=validate.Range(min=0.1))

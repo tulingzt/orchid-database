@@ -84,7 +84,9 @@
                 throw new Error(errorData.detail || '请求失败');
                 }
 
-                const users = await response.json();
+                const responseData = await response.json();
+                const users = responseData.data; // 获取用户数组
+                const pagination = responseData.pagination; // 分页信息（可选）
                 renderUserList(users);
             } catch (error) {
                 showMessage(error.message, 'error');
@@ -103,7 +105,8 @@
                             <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>管理员</option>
                         </select>
                     </td>
-                    <td><button onclick="updateRole(this)">保存修改</button></td>
+                    <td><button onclick="updateRole(this)">保存修改</button>
+                        <button onclick="deleteUser(this)">删除</button></td>
                 </tr>
             `).join('');
         }
@@ -129,6 +132,30 @@
                     loadUserList(); // 刷新列表
                 } else {
                     showMessage('更新失败：' + (await response.json()).message, 'error');
+                }
+            } catch (error) {
+                showMessage('网络请求失败', 'error');
+            }
+        }
+
+        // 删除角色
+        async function deleteUser(button) {
+            const row = button.closest('tr');
+            const userId = row.dataset.userId;
+            try {
+                const response = await fetch(`/api/auth/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    showMessage('角色删除成功', 'success');
+                    loadUserList(); // 刷新列表
+                } else {
+                    showMessage('删除失败：' + (await response.json()).message, 'error');
                 }
             } catch (error) {
                 showMessage('网络请求失败', 'error');

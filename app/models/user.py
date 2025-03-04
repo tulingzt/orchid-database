@@ -65,7 +65,7 @@ class User(db.Model):
         db.session.add(self)
         db.session.commit()
 
-# 用户数据Schema校验
+# 用户查询数据校验
 class UserQuerySchema(Schema):
     username = fields.Str(required = False, allow_none = True)
     role = fields.Str(required = False, allow_none = True, validate = validate.OneOf(['admin', 'user']))
