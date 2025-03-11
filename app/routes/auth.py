@@ -124,4 +124,12 @@ def refresh():
             "role": current_user['role']
         }
     )
-    return jsonify(access_token=access_token)
+    refresh_token = create_refresh_token(
+        identity=current_user['name'],
+        additional_claims = {
+            "id": current_user['id'],
+            "name": current_user['name'],
+            "role": current_user['role']
+        }
+    )
+    return jsonify(access_token=access_token, refresh_token=refresh_token)

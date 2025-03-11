@@ -57,7 +57,8 @@ class User(db.Model):
         return {
             "user_id": self.user_id,
             "username": self.username,
-            "role": self.role
+            "role": self.role,
+            "created_time": self.created_time,
         }
     # 更新登录时间
     def update_login_time(self):

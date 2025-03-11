@@ -59,6 +59,6 @@ class Sepal(db.Model):
 # 萼片形态数据校验
 class SepalSchema(Schema):
     flower_id = fields.Int(required=True)
-    sepal_length = fields.Decimal(required=True, validate=validate.Range(min=0.1))
-    sepal_width = fields.Decimal(required=True, validate=validate.Range(min=0.1))
-    sepal_area = fields.Decimal(validate=validate.Range(min=0.1))
+    sepal_length = fields.Decimal(required=True, validate=validate.Range(min=0))
+    sepal_width = fields.Decimal(required=True, validate=validate.Range(min=0))
+    sepal_area = fields.Decimal(required=False, allow_none=True, validate=validate.Range(min=0))

@@ -59,6 +59,6 @@ class Petal(db.Model):
 # 花瓣形态数据校验
 class PetalSchema(Schema):
     flower_id = fields.Int(required=True)
-    petal_length = fields.Decimal(required=True, validate=validate.Range(min=0.1))
-    petal_width = fields.Decimal(required=True, validate=validate.Range(min=0.1))
-    petal_area = fields.Decimal(validate=validate.Range(min=0.1))
+    petal_length = fields.Decimal(required=True, validate=validate.Range(min=0))
+    petal_width = fields.Decimal(required=True, validate=validate.Range(min=0))
+    petal_area = fields.Decimal(required=False, allow_none=True, validate=validate.Range(min=0))

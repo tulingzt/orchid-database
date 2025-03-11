@@ -59,6 +59,6 @@ class Flower(db.Model):
 # 花朵形态数据Schema校验
 class FlowerSchema(Schema):
     species_id = fields.Int(required=True)
-    flower_length = fields.Decimal(required=True, validate=validate.Range(min=0.1))
-    flower_width = fields.Decimal(required=True, validate=validate.Range(min=0.1))
-    flower_area = fields.Decimal(validate=validate.Range(min=0.1))
+    flower_length = fields.Decimal(required=True, validate=validate.Range(min=0))
+    flower_width = fields.Decimal(required=True, validate=validate.Range(min=0))
+    flower_area = fields.Decimal(required=False, allow_none=True, validate=validate.Range(min=0))
