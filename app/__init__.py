@@ -1,14 +1,22 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
-
+from marshmallow import ValidationError
 import config
 
 db = SQLAlchemy()
 jwt = JWTManager()
+app = Flask(__name__)
+
+@app.errorhandler(ValidationError)
+def handle_validation_error(err):
+    return jsonify({
+        "code": 400,
+        "message": "请求数据不合法",
+        "errors": err.messages
+    }), 400
 
 def create_app():
-    app = Flask(__name__)
     app.config.from_object('config.app')
     # 注册蓝图
     from app.routes.auth import auth

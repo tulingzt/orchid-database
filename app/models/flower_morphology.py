@@ -56,7 +56,7 @@ class Flower(db.Model):
         'comment': '花朵形态参数表'
     }
 
-# 花朵形态数据Schema校验
+# 花朵形态数据校验
 class FlowerSchema(Schema):
     species_id = fields.Int(required=True)
     flower_length = fields.Decimal(required=True, validate=validate.Range(min=0))

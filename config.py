@@ -15,8 +15,8 @@ class app:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # JWT配置
     SECRET_KEY = 'secret key'
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
-    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=1)
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=1)
 
 class auth:
     # 管理员密钥

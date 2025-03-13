@@ -6,38 +6,12 @@ class Petal(db.Model):
     # 表名定义
     __tablename__ = 'petal_morphology'
     # 表项定义
-    petal_id = db.Column(
-        db.INTEGER,
-        primary_key = True,
-        autoincrement = True,
-        comment = '花瓣数据ID'
-    )
-    flower_id = db.Column(
-        db.INTEGER,
-        db.ForeignKey('flower_morphology.flower_id', ondelete='CASCADE', onupdate='CASCADE'),
-        nullable = False,
-        comment = '关联花朵ID',
-        index = True
-    )
-    petal_length = db.Column(
-        db.DECIMAL(6, 2),
-        nullable = False,
-        comment = '花瓣长度（cm）'
-    )
-    petal_width = db.Column(
-        db.DECIMAL(6, 2),
-        nullable = False,
-        comment = '花瓣宽度（cm）'
-    )
-    petal_ratio = db.Column(
-        db.DECIMAL(6, 2),
-        db.Computed('petal_length / petal_width'),
-        comment = '长宽比（自动计算）'
-    )
-    petal_area = db.Column(
-        db.DECIMAL(8, 2),
-        comment = '花瓣面积（cm²）'
-    )
+    petal_id = db.Column(db.INTEGER, primary_key = True, autoincrement = True, comment = '花瓣数据ID')
+    flower_id = db.Column(db.INTEGER, db.ForeignKey('flower_morphology.flower_id', ondelete='CASCADE', onupdate='CASCADE'), nullable = False, comment = '关联花朵ID', index = True)
+    petal_length = db.Column(db.DECIMAL(6, 2), nullable = False, comment = '花瓣长度（cm）')
+    petal_width = db.Column(db.DECIMAL(6, 2), nullable = False, comment = '花瓣宽度（cm）')
+    petal_ratio = db.Column(db.DECIMAL(6, 2), db.Computed('petal_length / petal_width'), comment = '长宽比（自动计算）')
+    petal_area = db.Column(db.DECIMAL(8, 2), comment = '花瓣面积（cm²）')
     # 提供转字典方法
     def to_dict(self):
         return {

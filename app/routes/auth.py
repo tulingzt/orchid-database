@@ -14,7 +14,7 @@ def register():
     username = request.json.get('username')
     password = request.json.get('password')
     # 校验唯一性
-    if User.query.filter_by(username = username).first():
+    if User.query.filter_by(username=username).first():
         return jsonify({"code": 400, "message": "用户名已存在"}), 400
     # 哈希密码
     salt = bcrypt.gensalt()
@@ -24,7 +24,13 @@ def register():
     if request.json.get('admin_secret') == config.auth.ADMIN_SECRET:
         role = 'admin'
     # 保存用户
-    new_user = User(username, password_hash = password_hash.decode('utf-8'), role = role)
+    new_user = User(
+        username=username,
+        password_hash=password_hash.decode('utf-8'),
+        role=role,
+        created_time=db.text('CURRENT_TIMESTAMP'),
+        last_login_time=db.text('CURRENT_TIMESTAMP')
+    )
     db.session.add(new_user)
     db.session.commit()
     return jsonify({"code": 201, "message": "注册成功"}), 201
@@ -35,14 +41,14 @@ def login():
     username = request.json.get('username')
     password = request.json.get('password')
     # 查找是否有对应用户
-    user = User.query.filter_by(username = username).first()
+    user = User.query.filter_by(username=username).first()
     if not user or not bcrypt.checkpw(password.encode('utf-8'), user.password_hash.encode('utf-8')):
         return jsonify({"code": 401, "message": "用户名或密码错误"}), 401
     user.update_login_time()
     # 生成JWT令牌
     access_token = create_access_token(
         identity=user.username,
-        additional_claims = {
+        additional_claims={
             "id": user.user_id,
             "name": user.username,
             "role": user.role
@@ -50,7 +56,7 @@ def login():
     )
     refresh_token = create_refresh_token(
         identity=user.username,
-        additional_claims = {
+        additional_claims={
             "id": user.user_id,
             "name": user.username,
             "role": user.role
@@ -113,12 +119,12 @@ def get_user():
 
 # 使用刷新JWT来获取普通JWT
 @auth.route("/refresh", methods=["POST"])
-@jwt_required(refresh = True)
+@jwt_required(refresh=True)
 def refresh():
     current_user = get_jwt()
     access_token = create_access_token(
         identity=current_user['name'],
-        additional_claims = {
+        additional_claims={
             "id": current_user['id'],
             "name": current_user['name'],
             "role": current_user['role']
@@ -126,7 +132,7 @@ def refresh():
     )
     refresh_token = create_refresh_token(
         identity=current_user['name'],
-        additional_claims = {
+        additional_claims={
             "id": current_user['id'],
             "name": current_user['name'],
             "role": current_user['role']

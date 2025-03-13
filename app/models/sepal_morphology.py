@@ -6,38 +6,12 @@ class Sepal(db.Model):
     # 表名定义
     __tablename__ = 'sepal_morphology'
     # 表项定义
-    sepal_id = db.Column(
-        db.INTEGER,
-        primary_key = True,
-        autoincrement = True,
-        comment = '萼片数据ID'
-    )
-    flower_id = db.Column(
-        db.INTEGER,
-        db.ForeignKey('flower_morphology.flower_id', ondelete='CASCADE', onupdate='CASCADE'),
-        nullable = False,
-        comment = '关联花朵ID',
-        index = True
-    )
-    sepal_length = db.Column(
-        db.DECIMAL(6, 2),
-        nullable = False,
-        comment = '萼片长度（cm）'
-    )
-    sepal_width = db.Column(
-        db.DECIMAL(6, 2),
-        nullable = False,
-        comment = '萼片宽度（cm）'
-    )
-    sepal_ratio = db.Column(
-        db.DECIMAL(6, 2),
-        db.Computed('sepal_length / sepal_width'),
-        comment = '长宽比（自动计算）'
-    )
-    sepal_area = db.Column(
-        db.DECIMAL(8, 2),
-        comment = '萼片面积（cm²）'
-    )
+    sepal_id = db.Column(db.INTEGER, primary_key = True, autoincrement = True, comment = '萼片数据ID')
+    flower_id = db.Column(db.INTEGER, db.ForeignKey('flower_morphology.flower_id', ondelete='CASCADE', onupdate='CASCADE'), nullable = False, comment = '关联花朵ID', index = True)
+    sepal_length = db.Column(db.DECIMAL(6, 2), nullable = False, comment = '萼片长度（cm）')
+    sepal_width = db.Column(db.DECIMAL(6, 2), nullable = False, comment = '萼片宽度（cm）')
+    sepal_ratio = db.Column(db.DECIMAL(6, 2), db.Computed('sepal_length / sepal_width'), comment = '长宽比（自动计算）')
+    sepal_area = db.Column(db.DECIMAL(8, 2), comment = '萼片面积（cm²）')
     # 提供转字典方法
     def to_dict(self):
         return {
